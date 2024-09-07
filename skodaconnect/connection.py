@@ -1077,6 +1077,37 @@ class Connection:
             _LOGGER.warning(f'Could not fetch SmartLink vehicle status, error: {error}')
         return False
 
+    async def getAllStatistics(self, vin):
+        """Get all trips statistics."""
+        try:
+            await self.set_token('vwg')
+            short = await self.get(
+                urljoin(
+                    self._session_auth_ref_url[vin],
+                    f'fs-car/bs/tripstatistics/v1/{BRAND}/{COUNTRY}/vehicles/{vin}/tripdata/shortTerm?type=list&from=1970-01-01T00:00:00Z&to=2099-10-30T23:59:59Z'
+                )
+            )
+            cyclic = await self.get(
+                urljoin(
+                    self._session_auth_ref_url[vin],
+                    f'fs-car/bs/tripstatistics/v1/{BRAND}/{COUNTRY}/vehicles/{vin}/tripdata/cyclic?type=list&from=1970-01-01T00:00:00Z&to=2099-10-30T23:59:59Z'
+                )
+            )
+            data = {}
+            if (short.get('tripDataList', False) and short.get('tripDataList').get('tripData',False)):
+                data['tripstatistics'] =  short.get('tripDataList').get('tripData',{})
+            else:
+                _LOGGER.warning(f'Could not fetch shortterm trip statistics, HTTP status code: {short.get("status_code", "none")}')
+            if (cyclic.get('tripDataList', False) and cyclic.get('tripDataList').get('tripData',False)):
+                data['cyclicstatistics'] = cyclic.get('tripDataList').get('tripData',{})
+            else:
+                _LOGGER.warning(f'Could not fetch cyclic trip statistics, HTTP status code: {cyclic.get("status_code", "none")}')
+            return data
+        except Exception as error:
+            _LOGGER.warning(f'Could not fetch trip statistics, error: {error}')
+        return False
+
+
     async def getTripStatistics(self, vin):
         """Get short term trip statistics."""
         try:

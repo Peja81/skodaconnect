@@ -1,6 +1,10 @@
-python_version>=3.11
+#python_version>=3.11
 aiohttp
 beautifulsoup4
 cryptography
 lxml
 pyjwt
+
+
+pandas
+fsspec

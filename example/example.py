@@ -6,6 +6,9 @@ import inspect
 import time
 import sys
 import os
+import json
+import datetime 
+
 from aiohttp import ClientSession
 from datetime import datetime
 
@@ -21,11 +24,13 @@ except ModuleNotFoundError as e:
 
 logging.basicConfig(level=logging.DEBUG)
 
-USERNAME = 'email@domain.com'
-PASSWORD = 'password!'
+USERNAME = '_____'
+PASSWORD = '___'
 PRINTRESPONSE = False
 MILES = False
 INTERVAL = 20
+# if you wish to dump all history to specfic, folder, enter here
+DUMP_ALL_STAT_TO_FOLDER = "D:\\"
 
 # If you wish to use stored tokens, this is an example on how to format data sent to restore_tokens method
 # Populate each 'client' as needed with the refresh_token as it can be used to fetch new access, id and refresh tokens
@@ -154,6 +159,14 @@ def is_enabled(attr):
         return True
     return attr in RESOURCES
 
+def save_statistics_to_csv(data, path):
+    """Save data to csv with necessary post processing."""
+    import pandas
+    df1 = pandas.DataFrame([s for s in data]).sort_values("startMileage")
+    df1["averageFuelConsumption"] = df1["averageFuelConsumption"]/10
+    df1.to_csv(path)
+
+
 async def main():
     """Main method."""
     async with ClientSession(headers={'Connection': 'keep-alive'}) as session:
@@ -197,6 +210,20 @@ async def main():
 
             instruments = set()
             for vehicle in connection.vehicles:
+                if DUMP_ALL_STAT_TO_FOLDER != '':
+                    print('')
+                    print('########################################')
+                    print('#  Dumping trip statistics to xlsx      #')
+                    print('########################################')
+                    #vehicle
+                    data_all_trips = await connection.getAllStatistics(vehicle.vin)
+                
+                    path = os.path.join(DUMP_ALL_STAT_TO_FOLDER, "allshorttrips.csv")
+                    save_statistics_to_csv(data_all_trips["tripstatistics"], path)
+
+                    path = os.path.join(DUMP_ALL_STAT_TO_FOLDER, "allcyclictrips.csv")
+                    save_statistics_to_csv(data_all_trips["cyclicstatistics"], path)
+
                 print('')
                 print('########################################')
                 print('#         Setting up dashboard         #')
