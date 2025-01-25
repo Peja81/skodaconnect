@@ -24,12 +24,13 @@ except ModuleNotFoundError as e:
 
 logging.basicConfig(level=logging.DEBUG)
 
-USERNAME = '_____'
+USERNAME = 'email@domain.com'
 PASSWORD = '___'
 PRINTRESPONSE = False
 MILES = False
 INTERVAL = 20
-# if you wish to dump all history to specfic, folder, enter here
+
+# if you wish to dump all history to specfic, folder, enter here or leave it empty
 DUMP_ALL_STAT_TO_FOLDER = "D:\\"
 
 # If you wish to use stored tokens, this is an example on how to format data sent to restore_tokens method
@@ -226,16 +227,25 @@ async def main():
                 if DUMP_ALL_STAT_TO_FOLDER != '':
                     print('')
                     print('########################################')
-                    print('#  Dumping trip statistics to xlsx      #')
+                    print('#  Dumping trip statistics to csv      #')
                     print('########################################')
                     #vehicle
                     data_all_trips = await connection.getAllStatistics(vehicle.vin)
+
+                    if not os.path.exists(DUMP_ALL_STAT_TO_FOLDER):
+                        raise FileNotFoundError(f"Error: The folder '{DUMP_ALL_STAT_TO_FOLDER}' does not exist.")
+                    else:
+                        print(f"The folder '{DUMP_ALL_STAT_TO_FOLDER}' exists.")
                 
                     path = os.path.join(DUMP_ALL_STAT_TO_FOLDER, "allshorttrips.csv")
+                    print(f"Saving all short trips to {path}")
                     save_statistics_to_csv(data_all_trips["tripstatistics"], path)
 
                     path = os.path.join(DUMP_ALL_STAT_TO_FOLDER, "allcyclictrips.csv")
+                    print(f"Saving all long term trips to {path}")
                     save_statistics_to_csv(data_all_trips["cyclicstatistics"], path)
+
+                    print("Done")
 
                 print('')
                 print('########################################')
