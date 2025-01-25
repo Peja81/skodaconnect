@@ -4,7 +4,4 @@ beautifulsoup4
 cryptography
 lxml
 pyjwt
-
-
-pandas
 fsspec

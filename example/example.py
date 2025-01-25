@@ -160,12 +160,25 @@ def is_enabled(attr):
     return attr in RESOURCES
 
 def save_statistics_to_csv(data, path):
-    """Save data to csv with necessary post processing."""
-    import pandas
-    df1 = pandas.DataFrame([s for s in data]).sort_values("startMileage")
-    df1["averageFuelConsumption"] = df1["averageFuelConsumption"]/10
-    df1.to_csv(path)
+    import csv
 
+    """Save data to csv with necessary post processing."""
+    # Sort the data by "startMileage"
+    sorted_data = sorted(data, key=lambda x: x["startMileage"])
+
+    # Adjust the "averageFuelConsumption" values to represent liter per km
+    for item in sorted_data:
+        if "averageFuelConsumption" in item:
+            item["averageFuelConsumption"] /= 10
+        else:
+            # first trip after factory  doesn't have average fuel consumption key
+            item["averageFuelConsumption"] = 0
+
+    # Write to a CSV file
+    with open(path, mode="w", newline="") as file:
+        writer = csv.DictWriter(file, fieldnames=sorted_data[0].keys())
+        writer.writeheader()
+        writer.writerows(sorted_data)
 
 async def main():
     """Main method."""
